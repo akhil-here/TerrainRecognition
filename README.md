@@ -1,4 +1,4 @@
-# TerrainRecognition
+# TerrainRecognitionUsingTimeSeriesData
 
 <div align ="center">
 
