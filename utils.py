@@ -9,70 +9,11 @@ import csv
 import numpy as np
 from collections import Counter
 from sklearn.utils import shuffle, class_weight
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.over_sampling import RandomOverSampler
 from tensorflow.keras.utils import to_categorical
 
 FLOAT_ERROR = 1.0e-8
 OVER_SAMPLER_RATE = 0.1
 UNDER_SAMPLER_RATE = 0.5
-
-
-class ClassBalancer:
-  def __init__(self, sampling_rates=None):
-    self.sampling_rates = sampling_rates
-
-  def balance(self, x, y):
-    raise NotImplementedError("Has to be implemented in subclass")
-
-
-class UnderSampler(ClassBalancer):
-  def __init__(self, sampling_rates='auto'):
-    ClassBalancer.__init__(self, sampling_rates)
-
-  def balance(self, x, y):
-    sampler = RandomUnderSampler(sampling_strategy=self.sampling_rates)
-    sampler.fit_resample(x[:, :, 0], y)
-    x = x[sampler.sample_indices_]
-    y = y[sampler.sample_indices_]
-    return x, y
-
-
-class OverSampler(ClassBalancer):
-  def __init__(self, sampling_rates='auto'):
-    ClassBalancer.__init__(self, sampling_rates)
-
-  def balance(self, x, y):
-    sampler = RandomOverSampler(sampling_strategy=self.sampling_rates)
-    sampler.fit_resample(x[:, :, 0], y)
-    x = x[sampler.sample_indices_]
-    y = y[sampler.sample_indices_]
-    return x, y
-
-
-class BalanceSampler(ClassBalancer):
-  def __init__(self, sampling_rates=None):
-    ClassBalancer.__init__(self, sampling_rates)
-
-  def balance(self, x, y):
-    label_histogram = Counter(y)
-    sample_limit = self.sampling_rates
-    if self.sampling_rates is None:
-      sample_vals = sorted(label_histogram.values())
-      sample_limit = sample_vals[-2]
-    sampling_strategy = {k: max(v, sample_limit) for k, v in label_histogram.items()}
-    sampler = RandomOverSampler(sampling_strategy=sampling_strategy)
-    sampler.fit_resample(x[:, :, 0], y)
-    x = x[sampler.sample_indices_]
-    y = y[sampler.sample_indices_]
-    sampling_strategy = {k: sample_limit for k, v in label_histogram.items()}
-    sampler = RandomUnderSampler(sampling_strategy=sampling_strategy)
-    sampler.fit_resample(x[:, :, 0], y)
-    x = x[sampler.sample_indices_]
-    y = y[sampler.sample_indices_]
-    return x, y
-
-
 
 def read_csv_file(file_path, as_singles=False, as_string=False):
   lines = []
@@ -117,7 +58,6 @@ class SamplingRate:
     self.window_skip = window_skip
     self.step_size = step_size
     self.window_size = len(intervals)
-
 
 class DataStreamer:
   def __init__(self, data_files, sample_deltas=None, do_shuffle=False,
